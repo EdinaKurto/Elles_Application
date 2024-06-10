@@ -22,6 +22,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val loginState by loginViewModel.loginState.collectAsState()
+    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -38,13 +39,22 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel) {
         Spacer(modifier = Modifier.height(8.dp))
         TextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, visualTransformation = PasswordVisualTransformation())
         Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = { loginViewModel.login(email, password) }) {
+        Button(onClick = {
+            if (email.isEmpty() || password.isEmpty()) {
+                errorMessage = "All fields must be filled"
+            } else {
+                loginViewModel.login(email, password)
+            }
+        }) {
             Text("Login")
         }
         Spacer(modifier = Modifier.height(50.dp))
         Text("Don't have an account? Register here", modifier = Modifier.clickable {
             navController.navigate("registration")
         })
+        if (errorMessage.isNotEmpty()) {
+            Text(errorMessage, color = Color.Red)
+        }
     }
 
     when (loginState) {
@@ -56,7 +66,7 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel) {
             }
         }
         is LoginState.Error -> {
-            Text((loginState as LoginState.Error).message)
+            Text((loginState as LoginState.Error).message, color = Color.Red)
         }
         else -> {}
     }

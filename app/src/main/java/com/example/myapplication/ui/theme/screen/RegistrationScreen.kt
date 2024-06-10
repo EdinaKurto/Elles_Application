@@ -22,6 +22,7 @@ fun RegistrationScreen(navController: NavController, registrationViewModel: Regi
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     val registrationState by registrationViewModel.registrationState.collectAsState()
+    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -40,13 +41,22 @@ fun RegistrationScreen(navController: NavController, registrationViewModel: Regi
         Spacer(modifier = Modifier.height(8.dp))
         TextField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = { Text("Confirm Password") }, visualTransformation = PasswordVisualTransformation())
         Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = { registrationViewModel.register(email, password, confirmPassword) }) {
+        Button(onClick = {
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                errorMessage = "All fields must be filled"
+            } else {
+                registrationViewModel.register(email, password, confirmPassword)
+            }
+        }) {
             Text("Register")
         }
         Spacer(modifier = Modifier.height(30.dp))
         Text("Already have an account? Login here", modifier = Modifier.clickable {
             navController.navigate("login")
         })
+        if (errorMessage.isNotEmpty()) {
+            Text(errorMessage, color = Color.Red)
+        }
     }
 
     when (registrationState) {
@@ -58,7 +68,7 @@ fun RegistrationScreen(navController: NavController, registrationViewModel: Regi
             }
         }
         is RegistrationState.Error -> {
-            Text((registrationState as RegistrationState.Error).message)
+            Text((registrationState as RegistrationState.Error).message, color = Color.Red)
         }
         else -> {}
     }
